@@ -3,6 +3,8 @@ import librosa
 from skimage.feature import peak_local_max
 import pickle
 import os
+import time
+from utils import dump, get_id
 
 # helper function to dump all database items to a file
 def dump(data, dir, name):
@@ -17,13 +19,11 @@ def dump(data, dir, name):
     with open(file_path, 'wb') as file:
         pickle.dump(data, file, pickle.HIGHEST_PROTOCOL)
 
-def spectral_peaks(y, sr, window_hop=5, threshhold=0.05, show=False):    
-    # take STFT
+def spectral_peaks(y, window_hop=5, threshhold=0.05):    
+    # take STFT and get magnitude values
     stft = np.abs(librosa.stft(y))
-    # stft = stft / np.max(stft) # normalise 0 - 1
-            
+    # get the peaks           
     peaks = peak_local_max(stft, min_distance=window_hop, threshold_abs=threshhold)
-    
     return peaks # index of peaks
 
 # use every point in constelation map as anchor then find pair in target zone        
@@ -43,10 +43,10 @@ def peak_combinations(peaks, id, target_size=32, fan_max=10):
         for i in range(len(neighbours)): # create get neighbours function
             # value 
             time_stamp = anchor[1]
-            data       = {'id': id, "time_stamp": time_stamp} # object containing id and offset timestamp
+            data       = {"id": id, "time_stamp": time_stamp} # object containing id and offset timestamp
             # key
             time_diff  = neighbours[i][1] - time_stamp
-            hash       = (anchor[0], neighbours[i][0], time_diff)
+            hash       = (anchor[0], neighbours[i][0], time_diff) # create hash tuple
             
             # create key value pair
             combinations[hash] = [data] # add new key
@@ -56,44 +56,48 @@ def peak_combinations(peaks, id, target_size=32, fan_max=10):
     
     return combinations
 
-def fingerprint_file(file, id=None, show=False):
-    y, sr    = librosa.load(file)
-    peaks    = spectral_peaks(y, sr, show=show)
+def fingerprint_file(file, id=None, resample=16384):
+    y, sr    = librosa.load(file, sr=resample)
+    peaks    = spectral_peaks(y)
     features = peak_combinations(peaks, id)    
     return features
 
-# helper function to get id frrom genre and song number
-def get_id(file):
-    split = file.name.split('.')
-    id = split[0] + split[1][:5]
+# helper function to get id based on GTZAN dataset file names
+def get_id(file_name):
+    split = file_name.split('.')
+    id = split[0] + '.' + split[1][:5]
     return id
 
-def fingerprintBuilder(db_path, fingerprints_path, dataset_size=200, show=True):
+def fingerprintBuilder(db_path, fingerprints_path, dataset_size=200, show=False):
     doc_count = 0
     num_documents = len(os.listdir(db_path))
-    
     fingerprints = {}
     
+    start_time = time.perf_counter()
     for entry in os.scandir(db_path):
-        id = get_id(entry)  
-        combinations = fingerprint_file(entry, id) # fingerprint
+        id = get_id(entry.name)
+        combinations = fingerprint_file(entry, id=id) # fingerprint
         
         # add combinations to fingerprints data structure
         for hash in combinations.keys():
-            value = combinations[hash][0] # this is insane ??? 
+            value = combinations[hash][0] # this is not ideal but it works
             if hash in fingerprints: fingerprints[hash].append(value) # if the a hash exists append to current array
             else: fingerprints[hash] = [value] # add new key
-        
-        print("length fingerprints: {}".format(len(fingerprints)))  
-        
+                
         doc_count+=1
         if show:
             print("{} - {} of {} documents processed".format(id, doc_count, num_documents))
         if doc_count == dataset_size: break
         
+    # show run time and hash count
+    end_time = time.perf_counter()
+    total_time = end_time - start_time
+    print("---number of hashes {}---".format(len(fingerprints)))
+    print("---time to run fingerprinting {} seconds---".format(total_time))
+    
     # dump values to file
     dump(fingerprints, fingerprints_path, "documents")
 
 db_path = "_database_recordings"
-fingerprint_path = '_fingerprints'
-fingerprintBuilder(db_path, fingerprint_path)
+fingerprint_path = "_fingerprints"
+fingerprintBuilder(db_path, fingerprint_path, show=True)
