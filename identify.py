@@ -1,7 +1,7 @@
 import os
 import time
 from fingerprint import fingerprint_file
-from utils import get_id, load
+from utils import get_id, load, sec_to_min_sec_str
 from collections import defaultdict, Counter
 
 def identify(Q, D):    
@@ -53,34 +53,46 @@ def write_output_line(output_file, docs, query_name):
     output_file.write(output_line)
 
 def audioIdentification(query_path, fingerprints_path, output_path):
+    print("running audio identification on query set")
+    
     D = load(fingerprints_path) # load fingerprints
     output_file = open(output_path, "w")
-    matches = 0 # keep track of correct matches
-    count   = 0
+    
+    num_correct = 0 # keep track of correct matches
+    queries   = 0
     start_time = time.perf_counter()
+    
     # start profile timer
     for entry in os.scandir(query_path):
-        count+=1
+        # skip non wave files
+        if os.path.splitext(entry.name)[1] != ".wav": continue
+        
+        # process the query
+        queries+=1
         query_name = entry.name
         id  = get_id(query_name)
-        # finger print the query
-        Q = fingerprint_file(entry, id=id)
-        # find matching documents
-        doc_ids = identify(Q, D) 
-        if(len(doc_ids) > 0 and doc_ids[0] == id): matches+=1
+        Q = fingerprint_file(entry, id=id)  # finger print the query
+        doc_ids = identify(Q, D) # find matching documents
+        
+        # store correct and incorrect document matches
+        if(len(doc_ids) > 0 and doc_ids[0] == id):
+            num_correct+=1 
+            print("correct match D_id: {} - Q_id: {}".format(doc_ids[0], id))
+                    
         # write top documents 3 to file
         write_output_line(output_file, doc_ids, query_name)
     
     # stop profile timer 
     end_time = time.perf_counter()
+    
     # show runtime
-    total_time = end_time - start_time
-    print("---time to run identification {} seconds---".format(total_time))
-    print("---percentage correct {}---".format(matches / count))
+    run_time = end_time - start_time
+    
+    # print results
+    print("---time to run identification {} mins---".format(sec_to_min_sec_str(run_time)))
+    print("---percentage correct {}---".format(num_correct / queries))
+    print("---correct matches: {}---".format(num_correct))
     
     output_file.close()
-
-fingerprints_path = '_fingerprints/documents'
-query_path = "_query_recordings"
-output_path = "_output.txt"
-audioIdentification(query_path, fingerprints_path, output_path)
+    
+    return num_correct

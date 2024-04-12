@@ -2,8 +2,8 @@ import pickle
 import os
 
 # helper function to get id based on GTZAN dataset file names
-def get_id(file):
-    split = file.name.split('.')
+def get_id(file_name):
+    split = file_name.split('.')
     id = split[0] + "." + split[1][:5]
     return id
 
@@ -26,3 +26,7 @@ def load(name):
         loaded_data = pickle.load(file)
     return loaded_data
         
+def sec_to_min_sec_str(seconds):
+    minutes = seconds // 60  # Get the number of full minutes
+    remaining_seconds = seconds % 60  # Get the remaining seconds
+    return "{}:{}".format(round(minutes), round(remaining_seconds))

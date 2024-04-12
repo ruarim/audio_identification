@@ -1,23 +1,9 @@
 import numpy as np
 import librosa
 from skimage.feature import peak_local_max
-import pickle
 import os
 import time
-from utils import dump, get_id
-
-# helper function to dump all database items to a file
-def dump(data, dir, name):
-    # Ensure the directory exists
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    
-    #create the file path
-    file_path = os.path.join(dir, f"{name}.pkl")
-    
-    # write the data to the file
-    with open(file_path, 'wb') as file:
-        pickle.dump(data, file, pickle.HIGHEST_PROTOCOL)
+from utils import dump, get_id, sec_to_min_sec_str
 
 def spectral_peaks(y, window_hop=5, threshhold=0.05):    
     # take STFT and get magnitude values
@@ -62,19 +48,15 @@ def fingerprint_file(file, id=None, resample=16384):
     features = peak_combinations(peaks, id)    
     return features
 
-# helper function to get id based on GTZAN dataset file names
-def get_id(file_name):
-    split = file_name.split('.')
-    id = split[0] + '.' + split[1][:5]
-    return id
-
 def fingerprintBuilder(db_path, fingerprints_path, dataset_size=200, show=False):
     doc_count = 0
-    num_documents = len(os.listdir(db_path))
+    num_docs = len(os.listdir(db_path))
     fingerprints = {}
     
     start_time = time.perf_counter()
     for entry in os.scandir(db_path):
+        if os.path.splitext(entry.name)[1] != ".wav": continue
+        
         id = get_id(entry.name)
         combinations = fingerprint_file(entry, id=id) # fingerprint
         
@@ -86,18 +68,15 @@ def fingerprintBuilder(db_path, fingerprints_path, dataset_size=200, show=False)
                 
         doc_count+=1
         if show:
-            print("{} - {} of {} documents processed".format(id, doc_count, num_documents))
+            print("{} - {} of {} documents processed".format(id, doc_count, num_docs))
         if doc_count == dataset_size: break
         
     # show run time and hash count
     end_time = time.perf_counter()
-    total_time = end_time - start_time
+    run_time = end_time - start_time
+    
+    print("---fingerprinting runtime {} mins---".format(sec_to_min_sec_str(run_time)))
     print("---number of hashes {}---".format(len(fingerprints)))
-    print("---time to run fingerprinting {} seconds---".format(total_time))
     
     # dump values to file
     dump(fingerprints, fingerprints_path, "documents")
-
-db_path = "_database_recordings"
-fingerprint_path = "_fingerprints"
-fingerprintBuilder(db_path, fingerprint_path, show=True)
