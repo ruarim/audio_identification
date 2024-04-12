@@ -1,18 +1,20 @@
 from fingerprint import fingerprintBuilder
 from identify import audioIdentification
+from eval import evaluate
 
-# run identification on query set
+# file path variables
 db_path = "_database_recordings"
-fingerprint_path = "_fingerprints"
-fingerprintBuilder(db_path, fingerprint_path, show=True)
-
-# fingerprint dataset
-fingerprints_path = '_fingerprints/documents'
+fingerprints_path = "_fingerprints"
 query_path = "_query_recordings"
 output_path = "_output.txt"
-correct = audioIdentification(query_path, fingerprints_path, output_path)
 
-# run analysis
-# precicion
-# recall 
-# f-measure
+# fingerprint dataset
+fingerprintBuilder(db_path, fingerprints_path)
+
+# run identification on query set   
+audioIdentification(query_path, fingerprints_path, output_path)
+
+# run evaluation on output file
+rank = 1
+precision, recall, f_measure = evaluate(output_path, rank)
+print("Avg Precision: {}, Avg Recall: {}, Avg F Measure: {}".format(precision, recall, f_measure))
