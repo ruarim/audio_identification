@@ -4,7 +4,7 @@ Audio identification is a class of information retrieval systems that matches a 
 
 This implementation uses Wang's method of frequency pairs and time difference hashes to efficiently match query audio with the database.
 
-![constelation_map_h_1_kernal_16](https://github.com/ruarim/audio_identification/assets/48099261/6f85eddf-7175-4d60-a5b7-6b1e9cd0142f)
+<img width="611" alt="Screenshot 2024-05-28 at 11 19 55" src="https://github.com/ruarim/audio_identification/assets/48099261/94981477-0e4a-4c95-aa2c-4e433f9e9587">
 
 The system performs with 80% recall at rank 1 and 90% recall at rank 3.
 
