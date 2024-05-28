@@ -9,10 +9,10 @@ This implementation uses Wang's method of frequency pairs and time difference ha
 The system performs with 80% recall at rank 1 and 90% recall at rank 3.
 
 **Requirements**
-Numpy
-Librosa
-matplotlib
-skimage
+- Numpy
+- Librosa
+- matplotlib
+- skimage
 
 **Docs**
 - Download the GTZAN dataset.
