@@ -28,4 +28,4 @@ pip install numpy librosa matplotlib scikit-image
 ```
 
 ## References
-- An Industrial-Scale Music Search System" (Wang, 2003)
+- An Industrial-Strength Audio Search Algorithm (Wang, 2003)
