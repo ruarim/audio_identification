@@ -1,6 +1,6 @@
 # Audio Identification
 
-Audio identification is a class of information retrieval systems designed to match a query with a set of database documents. The objective is to find the most similar track in a database using a short audio snippet.
+Audio identification is a class of information retrieval systems designed to match a query with a set of database documents. The objective is to find the most similar track in a database given a short audio snippet.
 
 This implementation utilizes **Wang's fingerprinting method** (Wang 2003), leveraging frequency pairs and time difference hashes to efficiently match query audio with the database.
 
