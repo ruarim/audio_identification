@@ -2,7 +2,7 @@
 
 Audio identification is a class of information retrieval systems designed to match a query with a set of database documents. The objective is to find the most similar track in a database using a short audio snippet.
 
-This implementation utilizes **Wang's fingerprinting method**, leveraging frequency pairs and time difference hashes to efficiently match query audio with the database.
+This implementation utilizes **Wang's fingerprinting method** (Wang 2003), leveraging frequency pairs and time difference hashes to efficiently match query audio with the database.
 
 ![Audio Identification Diagram](https://github.com/ruarim/audio_identification/assets/48099261/94981477-0e4a-4c95-aa2c-4e433f9e9587)
 
@@ -25,3 +25,7 @@ Install the required packages via pip:
 
 ```bash
 pip install numpy librosa matplotlib scikit-image
+```
+
+## References
+- An Industrial-Scale Music Search System" (Wang, 2003)
